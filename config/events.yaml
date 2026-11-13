@@ -1,0 +1,7 @@
+# Daftar event high-impact => mesin STAND_ASIDE di sekitar waktu ini.
+# ISI SENDIRI dan verifikasi dari sumber resmi (federalreserve.gov, bls.gov). Waktu dalam UTC.
+# Penutupan mingguan/bulanan sudah otomatis (lihat g1.*_close_window_min).
+# Format:
+#   - {name: "FOMC", ts: "2026-12-09T19:00:00Z", before_min: 120, after_min: 90}
+events:
+  - {name: "FOMC (verifikasi tanggal)", ts: "2026-12-09T19:00:00Z", before_min: 120, after_min: 90}

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mesin Analisis Scalping</title>
+<style>
+:root{--bg:#f6f7f9;--fg:#1b1f24;--card:#fff;--mut:#667085;--bd:#e4e7ec;--g:#067647;--r:#b42318;--y:#b54708}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1318;--fg:#e6e9ee;--card:#171c23;--mut:#98a2b3;--bd:#2a313b;--g:#47cd89;--r:#f97066;--y:#fdb022}}
+body{margin:0;font:14px/1.5 system-ui,sans-serif;background:var(--bg);color:var(--fg)}
+main{max-width:1100px;margin:auto;padding:16px}
+h1{font-size:20px;margin:0 0 4px}h2{font-size:16px;margin:24px 0 8px}
+.mut{color:var(--mut);font-size:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:12px}
+.b{display:inline-block;padding:1px 8px;border-radius:99px;font-weight:600;font-size:12px;border:1px solid currentColor}
+.LONG_SCALP{color:var(--g)}.SHORT_SCALP{color:var(--r)}.WAIT{color:var(--y)}.NO_TRADE{color:var(--mut)}
+table{width:100%;border-collapse:collapse}th,td{padding:4px 8px;border-bottom:1px solid var(--bd);text-align:left;white-space:nowrap}
+.sc{overflow-x:auto}pre{white-space:pre-wrap;margin:6px 0 0;font:12px/1.4 ui-monospace,monospace}
+.warn{background:var(--card);border:1px solid var(--y);border-radius:8px;padding:8px;margin:10px 0}
+</style></head><body><main>
+<h1>Mesin Analisis Scalping Crypto</h1>
+<div class="mut" id="meta">memuat...</div>
+<div class="warn">Analisis &amp; paper trading. Bukan nasihat keuangan. Parameter [C] adalah hipotesis sampai lolos backtest + forward-test.</div>
+<h2>Keputusan terkini</h2><div class="grid" id="dec"></div>
+<h2>Statistik jurnal (paper)</h2><div id="st" class="mut"></div>
+<h2>Jurnal sinyal</h2><div class="sc"><table id="jr"></table></div>
+<h2>Backtest terakhir</h2><div id="bt" class="mut">belum ada (jalankan workflow Backtest)</div>
+<script>
+const $=id=>document.getElementById(id),f=(x,d=5)=>x==null?'-':Number(x).toPrecision(d);
+const esc=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+fetch('data/latest.json',{cache:'no-store'}).then(r=>r.json()).then(d=>{
+ $('meta').textContent='Update: '+d.generated+' | mode: '+d.mode;
+ $('dec').innerHTML=d.decisions.map(o=>{const L=o.levels||{};return `<div class="card"><b>${esc(o.symbol)}</b> <span class="b ${o.decision}">${o.decision}</span>
+ <span class="mut"> skor ${o.score??0}</span><div class="mut">${o.season||'-'} · ${o.regime||'-'} · ${(o.location||{}).zone||'-'}</div>
+ ${L.entry?`<div>entry ${f(L.entry)} · stop ${f(L.stop)} · TP1 ${f(L.tp1)} · TP2 ${f(L.tp2)}<br><span class="mut">stop ${L.stop_pct}% · R:R ${L.rr_tp1}/${L.rr_tp2} · ${(o.trigger||{}).type} ${(o.trigger||{}).tf||''} ${(o.trigger||{}).status||''}</span></div>`:''}
+ <div class="mut">${(o.reasons||[]).slice(0,3).map(esc).join('<br>')}</div>
+ ${(o.scenarios||[]).map(s=>`<div class="mut">• ${esc(s)}</div>`).join('')}
+ <div class="mut">${Object.entries(o.gates||{}).map(([k,v])=>k+'='+v).join(' ')}</div></div>`}).join('');
+ const s=d.stats||{};$('st').textContent=s.n?`n=${s.n} · win ${s.win_rate}% · expectancy ${s.expectancy_r}R · total ${s.total_r}R · maxDD ${s.max_dd_r}R`:'Belum ada trade tertutup.';
+});
+fetch('data/journal.json',{cache:'no-store'}).then(r=>r.json()).then(j=>{
+ $('jr').innerHTML='<tr><th>waktu</th><th>simbol</th><th>sisi</th><th>trigger</th><th>entry</th><th>stop</th><th>TP1</th><th>status</th><th>hasil</th><th>R</th></tr>'+
+ j.slice().reverse().slice(0,50).map(t=>`<tr><td>${String(t.ts).slice(0,16)}</td><td>${t.symbol}</td><td>${t.side}</td><td>${t.trigger}/${t.tf}</td><td>${f(t.entry)}</td><td>${f(t.stop)}</td><td>${f(t.tp1)}</td><td>${t.status}</td><td>${t.outcome||''}</td><td>${t.r??''}</td></tr>`).join('');
+}).catch(()=>{});
+fetch('data/backtest.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(b=>{if(!b)return;const o=b.overall||{};
+ $('bt').innerHTML=`${b.days} hari · ${(b.symbols||[]).join(', ')}<br>n=${o.n} · win ${o.win_rate}% · expectancy ${o.expectancy_r}R · maxDD ${o.max_dd_r}R<br>`+(b.notes||[]).map(n=>'• '+esc(n)).join('<br>');
+}).catch(()=>{});
+</script></main></body></html>
